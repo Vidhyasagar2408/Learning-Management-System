@@ -11,9 +11,9 @@ export default function AppShell({ children }) {
     <div className="min-h-screen">
       <header className="border-b border-line bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <Link to="/" className="text-lg font-semibold">Kodnest LMS</Link>
+          <Link to="/subjects" className="text-lg font-semibold">Kodnest LMS</Link>
           <nav className="flex items-center gap-4 text-sm">
-            <Link to="/" className={location.pathname === '/' ? 'text-accent' : ''}>Subjects</Link>
+            <Link to="/subjects" className={location.pathname === '/subjects' ? 'text-accent' : ''}>Subjects</Link>
             {isAuthenticated && <Link to="/profile" className={location.pathname === '/profile' ? 'text-accent' : ''}>Profile</Link>}
             {isAuthenticated ? (
               <button onClick={logoutUser} className="rounded border border-line px-3 py-1">Logout</button>

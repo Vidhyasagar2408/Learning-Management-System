@@ -11,7 +11,8 @@ import AppShell from './components/Layout/AppShell';
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<AppShell><Home /></AppShell>} />
+      <Route path="/" element={<Navigate to="/register" replace />} />
+      <Route path="/subjects" element={<AppShell><Home /></AppShell>} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route
@@ -23,7 +24,7 @@ export default function App() {
         element={<AuthGuard><AppShell><VideoPage /></AppShell></AuthGuard>}
       />
       <Route path="/profile" element={<AuthGuard><AppShell><Profile /></AppShell></AuthGuard>} />
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<Navigate to="/register" replace />} />
     </Routes>
   );
 }
