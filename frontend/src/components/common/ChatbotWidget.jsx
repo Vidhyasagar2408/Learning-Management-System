@@ -33,11 +33,16 @@ export default function ChatbotWidget() {
         .slice(0, -1)
         .map((m) => ({ role: m.role, content: m.content }));
       const { data } = await apiClient.post('/chatbot/message', { message: text, history });
-      setMessages((prev) => [...prev, { role: 'assistant', content: data.reply }]);
-    } catch (_error) {
+      const suffix = data?.mode === 'fallback' ? '\n\n(Using local assistant fallback)' : '';
+      setMessages((prev) => [...prev, { role: 'assistant', content: `${data.reply || ''}${suffix}` }]);
+    } catch (error) {
+      const apiMessage = error?.response?.data?.message;
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: 'Chatbot is unavailable right now. Please try again.' }
+        {
+          role: 'assistant',
+          content: apiMessage || 'Chatbot is unavailable right now. Please try again.'
+        }
       ]);
     } finally {
       setSending(false);
