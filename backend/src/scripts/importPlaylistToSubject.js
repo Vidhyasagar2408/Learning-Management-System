@@ -1,8 +1,13 @@
 const { spawnSync } = require('node:child_process');
 const { db } = require('../config/db');
 
-const PLAYLIST_URL = 'https://www.youtube.com/playlist?list=PLbtI3_MArDOkxh7XzixN2G4NAGIVqTFon';
-const SUBJECT_SLUG = 'full-stack-web-development-complete-course';
+const PLAYLIST_URLS = [
+  'https://youtube.com/playlist?list=PLbtI3_MArDOmSKABu09sEs0SxCibd1wgr&si=dbriULO-62iKt4ZX',
+  'https://youtube.com/playlist?list=PLbtI3_MArDOnIIJxB6xFtpnhM0wTwz0x6&si=_HQSVmPoml8WMxCb',
+  'https://youtube.com/playlist?list=PLbtI3_MArDOlJ4036mWiUKaQToUS8MZVu&si=JUtrQVe1fTKMKsrE',
+  'https://youtube.com/playlist?list=PLbtI3_MArDOkXRLxdMt1NOMtCS-84ibHH&si=0CsneztAYLO1mOip'
+];
+
 const SECTION_TITLE = 'Complete Course';
 const SECTION_ORDER = 1;
 
@@ -24,27 +29,44 @@ function extractVideoId(url) {
   }
 }
 
-function fetchPlaylistUrlsWithPython(playlistUrl) {
+function slugify(input) {
+  const base = String(input || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 70);
+  return base || 'course';
+}
+
+function fetchPlaylistsWithPython(urls) {
   const script = [
     'import json',
     'from pytube import Playlist',
-    `pl = Playlist(${JSON.stringify(playlistUrl)})`,
-    'print(json.dumps(list(pl.video_urls)))'
+    `urls = ${JSON.stringify(urls)}`,
+    'out = []',
+    'for u in urls:',
+    '    p = Playlist(u)',
+    '    out.append({',
+    "        'url': u,",
+    "        'title': p.title,",
+    "        'video_urls': list(p.video_urls)",
+    '    })',
+    'print(json.dumps(out))'
   ].join('\n');
 
   const result = spawnSync('python', ['-c', script], { encoding: 'utf-8' });
   if (result.status !== 0) {
-    throw new Error(`Failed to read playlist URLs: ${result.stderr || result.stdout}`);
+    throw new Error(`Failed to read playlists: ${result.stderr || result.stdout}`);
   }
 
   try {
     const parsed = JSON.parse(result.stdout.trim());
     if (!Array.isArray(parsed) || parsed.length === 0) {
-      throw new Error('No videos found in playlist');
+      throw new Error('No playlists found');
     }
     return parsed;
   } catch (_err) {
-    throw new Error(`Could not parse playlist data: ${result.stdout}`);
+    throw new Error(`Could not parse playlists: ${result.stdout}`);
   }
 }
 
@@ -52,9 +74,7 @@ async function fetchVideoMeta(videoId) {
   try {
     const url = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
     const res = await fetch(url);
-    if (!res.ok) {
-      return null;
-    }
+    if (!res.ok) return null;
     const data = await res.json();
     return {
       title: data.title || null,
@@ -66,19 +86,43 @@ async function fetchVideoMeta(videoId) {
   }
 }
 
-async function ensureSubject() {
-  const subject = await db('subjects').where({ slug: SUBJECT_SLUG }).first();
-  if (!subject) {
-    throw new Error(`Subject not found for slug: ${SUBJECT_SLUG}`);
+async function ensureSubject({ title, playlistId, thumbnailUrl }) {
+  const slug = `${slugify(title)}-${playlistId.toLowerCase()}`;
+  const existing = await db('subjects').where({ slug }).first();
+  if (existing) {
+    await db('subjects').where({ id: existing.id }).update({
+      title,
+      description: `Imported from YouTube playlist ${playlistId}`,
+      thumbnail_url: thumbnailUrl || existing.thumbnail_url,
+      is_published: true,
+      updated_at: new Date()
+    });
+    return db('subjects').where({ id: existing.id }).first();
   }
-  return subject;
+
+  const [id] = await db('subjects').insert({
+    title,
+    slug,
+    description: `Imported from YouTube playlist ${playlistId}`,
+    thumbnail_url: thumbnailUrl || null,
+    is_published: true,
+    created_at: new Date(),
+    updated_at: new Date()
+  });
+  return db('subjects').where({ id }).first();
 }
 
 async function ensureSection(subjectId) {
   const existing = await db('sections')
     .where({ subject_id: subjectId, order_index: SECTION_ORDER })
     .first();
-  if (existing) return existing;
+  if (existing) {
+    await db('sections').where({ id: existing.id }).update({
+      title: SECTION_TITLE,
+      updated_at: new Date()
+    });
+    return existing;
+  }
 
   const [id] = await db('sections').insert({
     subject_id: subjectId,
@@ -90,31 +134,27 @@ async function ensureSection(subjectId) {
   return db('sections').where({ id }).first();
 }
 
-async function run() {
-  const playlistId = extractPlaylistId(PLAYLIST_URL);
-  if (!playlistId) {
-    throw new Error('Invalid playlist URL');
+async function importOnePlaylist(playlist) {
+  const playlistId = extractPlaylistId(playlist.url);
+  if (!playlistId) throw new Error(`Invalid playlist URL: ${playlist.url}`);
+  if (!playlist.video_urls || playlist.video_urls.length === 0) {
+    throw new Error(`Playlist has no videos: ${playlist.url}`);
   }
 
-  const urls = fetchPlaylistUrlsWithPython(PLAYLIST_URL);
-  const subject = await ensureSubject();
+  const firstVideoId = extractVideoId(playlist.video_urls[0]);
+  const firstMeta = firstVideoId ? await fetchVideoMeta(firstVideoId) : null;
+  const subjectTitle = playlist.title || `Playlist ${playlistId}`;
+
+  const subject = await ensureSubject({
+    title: subjectTitle,
+    playlistId,
+    thumbnailUrl: firstMeta?.thumbnail || null
+  });
   const section = await ensureSection(subject.id);
 
-  // Basic metadata from the first video.
-  const firstVideoId = extractVideoId(urls[0]);
-  const firstMeta = firstVideoId ? await fetchVideoMeta(firstVideoId) : null;
-
-  await db('subjects').where({ id: subject.id }).update({
-    title: 'Full Stack WEB Development Complete Course',
-    description: subject.description || 'Complete full stack web development playlist course.',
-    thumbnail_url: firstMeta?.thumbnail || subject.thumbnail_url,
-    is_published: true,
-    updated_at: new Date()
-  });
-
-  for (let i = 0; i < urls.length; i += 1) {
+  for (let i = 0; i < playlist.video_urls.length; i += 1) {
     const orderIndex = i + 1;
-    const rawUrl = urls[i];
+    const rawUrl = playlist.video_urls[i];
     const videoId = extractVideoId(rawUrl);
     const meta = videoId ? await fetchVideoMeta(videoId) : null;
 
@@ -146,10 +186,23 @@ async function run() {
 
   await db('videos')
     .where({ section_id: section.id })
-    .andWhere('order_index', '>', urls.length)
+    .andWhere('order_index', '>', playlist.video_urls.length)
     .del();
 
-  console.log(`Imported ${urls.length} videos into subject "${SUBJECT_SLUG}".`);
+  return { subjectTitle, playlistId, count: playlist.video_urls.length };
+}
+
+async function run() {
+  const playlists = fetchPlaylistsWithPython(PLAYLIST_URLS);
+  const results = [];
+
+  for (const playlist of playlists) {
+    const one = await importOnePlaylist(playlist);
+    results.push(one);
+    console.log(`Imported ${one.count} videos for "${one.subjectTitle}" (${one.playlistId}).`);
+  }
+
+  console.log(`Completed import of ${results.length} playlists.`);
 }
 
 run()
