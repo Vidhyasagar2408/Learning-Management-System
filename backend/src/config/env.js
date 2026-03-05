@@ -35,7 +35,9 @@ const env = {
   JWT_ACCESS_EXPIRES_IN: process.env.JWT_ACCESS_EXPIRES_IN,
   JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN,
   CORS_ORIGIN: process.env.CORS_ORIGIN,
-  COOKIE_DOMAIN: process.env.COOKIE_DOMAIN || 'localhost'
+  COOKIE_DOMAIN: process.env.COOKIE_DOMAIN || 'localhost',
+  HF_TOKEN: process.env.HF_TOKEN || '',
+  HF_MODEL: process.env.HF_MODEL || 'Qwen/Qwen3.5-0.8B'
 };
 
 module.exports = { env };
