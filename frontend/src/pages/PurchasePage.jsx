@@ -70,6 +70,7 @@ export default function PurchasePage() {
         <div className="p-4">
           <h2 className="text-lg font-semibold">{course.title}</h2>
           <p className="mt-2 text-sm text-slate-600">{course.description}</p>
+          <p className="mt-2 text-sm text-slate-600">Instructor: {course.instructor_name || 'TBA'}</p>
           <p className="mt-3 text-base font-semibold">Amount: Rs. {Number(course.price_amount || 0).toFixed(2)}</p>
         </div>
       </div>

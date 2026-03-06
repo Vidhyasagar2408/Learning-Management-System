@@ -1,6 +1,6 @@
 const { db } = require('../config/db');
 
-async function createSubject({ title, slug, description, thumbnail_url, price_amount, sections }) {
+async function createSubject({ title, slug, description, thumbnail_url, price_amount, instructor_name, sections }) {
   const existing = await db('subjects').where({ slug }).first();
   let subjectId = existing?.id;
 
@@ -11,6 +11,7 @@ async function createSubject({ title, slug, description, thumbnail_url, price_am
       description,
       thumbnail_url,
       price_amount: Number(price_amount || 0),
+      instructor_name: instructor_name || null,
       is_published: true,
       created_at: new Date(),
       updated_at: new Date()
@@ -22,6 +23,7 @@ async function createSubject({ title, slug, description, thumbnail_url, price_am
       description,
       thumbnail_url,
       price_amount: Number(price_amount || 0),
+      instructor_name: instructor_name || null,
       is_published: true,
       updated_at: new Date()
     });
@@ -86,6 +88,7 @@ async function run() {
     description: 'Core JavaScript concepts for web development.',
     thumbnail_url: 'https://img.youtube.com/vi/W6NZfCO5SIk/hqdefault.jpg',
     price_amount: 1499,
+    instructor_name: 'Hitesh Choudhary',
     sections: [
       {
         order_index: 1,
@@ -136,6 +139,7 @@ async function run() {
     description: 'Start building modern UI with React.',
     thumbnail_url: 'https://img.youtube.com/vi/SqcY0GlETPk/hqdefault.jpg',
     price_amount: 1299,
+    instructor_name: 'Sheryians Coding School',
     sections: [
       {
         order_index: 1,
@@ -166,6 +170,7 @@ async function run() {
     description: 'Complete full stack web development playlist course.',
     thumbnail_url: 'https://img.youtube.com/vi/4dprtEzunIk/hqdefault.jpg',
     price_amount: 2499,
+    instructor_name: 'Sheryians Coding School',
     sections: [
       {
         order_index: 1,

@@ -19,6 +19,7 @@ export default function Home() {
         const subjects = res.data.items || [];
         if (!mounted) return;
         setItems(subjects);
+        setLoading(false);
 
         if (isAuthenticated && subjects.length > 0) {
           const [stats, enrollments] = await Promise.all([
@@ -44,7 +45,7 @@ export default function Home() {
           setProgressBySubject({});
           setEnrolledBySubject({});
         }
-      } finally {
+      } catch (_error) {
         if (mounted) setLoading(false);
       }
     }
@@ -71,6 +72,12 @@ export default function Home() {
             <div
               key={subject.id}
               className="group block overflow-hidden rounded border border-line bg-white transition hover:-translate-y-0.5 hover:shadow-sm"
+              onClick={() => navigate(`/courses/${subject.id}`)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') navigate(`/courses/${subject.id}`);
+              }}
             >
               <img
                 src={subject.thumbnail_url || 'https://placehold.co/640x360/e2e8f0/64748b?text=Course'}
@@ -80,7 +87,10 @@ export default function Home() {
               />
               <div className="p-4">
               <h2 className="font-semibold group-hover:text-accent">{subject.title}</h2>
-              <p className="mt-2 line-clamp-3 text-sm text-slate-600">{subject.description}</p>
+              {subject.description && !String(subject.description).toLowerCase().startsWith('imported from') ? (
+                <p className="mt-2 line-clamp-3 text-sm text-slate-600">{subject.description}</p>
+              ) : null}
+              <p className="mt-2 text-sm text-slate-600">Instructor: {subject.instructor_name || 'TBA'}</p>
               <p className="mt-2 text-sm font-semibold text-slate-800">Price: Rs. {Number(subject.price_amount || 0).toFixed(2)}</p>
               {isAuthenticated ? (
                 <div className="mt-3">
@@ -97,11 +107,18 @@ export default function Home() {
                 </div>
               ) : null}
               <div className="mt-3 flex items-center gap-2">
-                <Link to={`/courses/${subject.id}`} className="inline-block text-sm text-accent">Open course</Link>
+                <Link
+                  to={`/courses/${subject.id}`}
+                  className="inline-block text-sm text-accent"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Open course
+                </Link>
                 <button
                   type="button"
                   className="rounded bg-accent px-3 py-1 text-xs text-white"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     if (!isAuthenticated) {
                       navigate('/login', { state: { from: `/courses/${subject.id}/purchase` } });
                       return;

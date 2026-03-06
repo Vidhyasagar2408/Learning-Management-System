@@ -86,7 +86,7 @@ async function fetchVideoMeta(videoId) {
   }
 }
 
-async function ensureSubject({ title, playlistId, thumbnailUrl, priceAmount }) {
+async function ensureSubject({ title, playlistId, thumbnailUrl, priceAmount, instructorName }) {
   const slug = `${slugify(title)}-${playlistId.toLowerCase()}`;
   const existing = await db('subjects').where({ slug }).first();
   if (existing) {
@@ -95,6 +95,7 @@ async function ensureSubject({ title, playlistId, thumbnailUrl, priceAmount }) {
       description: `Imported from YouTube playlist ${playlistId}`,
       thumbnail_url: thumbnailUrl || existing.thumbnail_url,
       price_amount: Number(priceAmount || 0),
+      instructor_name: instructorName || existing.instructor_name || null,
       is_published: true,
       updated_at: new Date()
     });
@@ -107,6 +108,7 @@ async function ensureSubject({ title, playlistId, thumbnailUrl, priceAmount }) {
     description: `Imported from YouTube playlist ${playlistId}`,
     thumbnail_url: thumbnailUrl || null,
     price_amount: Number(priceAmount || 0),
+    instructor_name: instructorName || null,
     is_published: true,
     created_at: new Date(),
     updated_at: new Date()
@@ -152,7 +154,8 @@ async function importOnePlaylist(playlist) {
     title: subjectTitle,
     playlistId,
     thumbnailUrl: firstMeta?.thumbnail || null,
-    priceAmount
+    priceAmount,
+    instructorName: firstMeta?.author || null
   });
   const section = await ensureSection(subject.id);
 
