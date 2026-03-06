@@ -5,26 +5,34 @@ import Register from './pages/Register';
 import SubjectOverview from './pages/SubjectOverview';
 import VideoPage from './pages/VideoPage';
 import Profile from './pages/Profile';
+import PurchasePage from './pages/PurchasePage';
+import ChatbotPage from './pages/ChatbotPage';
 import AuthGuard from './components/Auth/AuthGuard';
 import AppShell from './components/Layout/AppShell';
 
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/register" replace />} />
-      <Route path="/subjects" element={<AppShell><Home /></AppShell>} />
+      <Route path="/" element={<Navigate to="/courses" replace />} />
+      <Route path="/courses" element={<AppShell><Home /></AppShell>} />
+      <Route path="/subjects" element={<Navigate to="/courses" replace />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route
-        path="/subjects/:subjectId"
+        path="/courses/:subjectId"
         element={<AuthGuard><AppShell><SubjectOverview /></AppShell></AuthGuard>}
       />
       <Route
-        path="/subjects/:subjectId/video/:videoId"
+        path="/courses/:subjectId/video/:videoId"
         element={<AuthGuard><AppShell><VideoPage /></AppShell></AuthGuard>}
       />
+      <Route
+        path="/courses/:subjectId/purchase"
+        element={<AuthGuard><AppShell><PurchasePage /></AppShell></AuthGuard>}
+      />
       <Route path="/profile" element={<AuthGuard><AppShell><Profile /></AppShell></AuthGuard>} />
-      <Route path="*" element={<Navigate to="/register" replace />} />
+      <Route path="/chatbot" element={<AuthGuard><AppShell><ChatbotPage /></AppShell></AuthGuard>} />
+      <Route path="*" element={<Navigate to="/courses" replace />} />
     </Routes>
   );
 }

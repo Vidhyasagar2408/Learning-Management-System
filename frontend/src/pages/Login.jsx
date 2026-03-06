@@ -15,7 +15,7 @@ export default function Login() {
     setError('');
     try {
       await loginUser({ email, password });
-      navigate(location.state?.from || '/subjects', { replace: true });
+      navigate(location.state?.from || '/courses', { replace: true });
     } catch (err) {
       setError(err?.response?.data?.message || 'Login failed');
     }

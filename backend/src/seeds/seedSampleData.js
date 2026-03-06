@@ -1,6 +1,6 @@
 const { db } = require('../config/db');
 
-async function createSubject({ title, slug, description, thumbnail_url, sections }) {
+async function createSubject({ title, slug, description, thumbnail_url, price_amount, sections }) {
   const existing = await db('subjects').where({ slug }).first();
   let subjectId = existing?.id;
 
@@ -10,6 +10,7 @@ async function createSubject({ title, slug, description, thumbnail_url, sections
       slug,
       description,
       thumbnail_url,
+      price_amount: Number(price_amount || 0),
       is_published: true,
       created_at: new Date(),
       updated_at: new Date()
@@ -20,6 +21,7 @@ async function createSubject({ title, slug, description, thumbnail_url, sections
       title,
       description,
       thumbnail_url,
+      price_amount: Number(price_amount || 0),
       is_published: true,
       updated_at: new Date()
     });
@@ -83,6 +85,7 @@ async function run() {
     slug: 'javascript-fundamentals',
     description: 'Core JavaScript concepts for web development.',
     thumbnail_url: 'https://img.youtube.com/vi/W6NZfCO5SIk/hqdefault.jpg',
+    price_amount: 1499,
     sections: [
       {
         order_index: 1,
@@ -132,6 +135,7 @@ async function run() {
     slug: 'react-basics',
     description: 'Start building modern UI with React.',
     thumbnail_url: 'https://img.youtube.com/vi/SqcY0GlETPk/hqdefault.jpg',
+    price_amount: 1299,
     sections: [
       {
         order_index: 1,
@@ -161,6 +165,7 @@ async function run() {
     slug: 'full-stack-web-development-complete-course',
     description: 'Complete full stack web development playlist course.',
     thumbnail_url: 'https://img.youtube.com/vi/4dprtEzunIk/hqdefault.jpg',
+    price_amount: 2499,
     sections: [
       {
         order_index: 1,

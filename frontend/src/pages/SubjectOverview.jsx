@@ -12,7 +12,7 @@ export default function SubjectOverview() {
       if (!mounted) return;
       const videoId = res.data.video_id;
       if (videoId) {
-        navigate(`/subjects/${subjectId}/video/${videoId}`, { replace: true });
+        navigate(`/courses/${subjectId}/video/${videoId}`, { replace: true });
       }
     });
     return () => {

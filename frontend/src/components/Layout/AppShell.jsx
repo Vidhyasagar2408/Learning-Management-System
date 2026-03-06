@@ -1,7 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { logoutUser } from '../../lib/auth';
-import ChatbotWidget from '../common/ChatbotWidget';
 
 export default function AppShell({ children }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -12,11 +11,12 @@ export default function AppShell({ children }) {
     <div className="min-h-screen">
       <header className="border-b border-line bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <Link to="/subjects" className="text-lg font-semibold">Kodnest LMS</Link>
+          <Link to="/courses" className="text-lg font-semibold">Kodnest LMS</Link>
           <nav className="flex items-center gap-4 text-sm">
-            <Link to="/subjects" className={location.pathname === '/subjects' ? 'text-accent' : ''}>Subjects</Link>
+            <Link to="/courses" className={location.pathname === '/courses' ? 'text-accent' : ''}>Home</Link>
+            <Link to="/courses" className={location.pathname.startsWith('/courses/') ? 'text-accent' : ''}>Courses</Link>
             {isAuthenticated && <Link to="/profile" className={location.pathname === '/profile' ? 'text-accent' : ''}>Profile</Link>}
-            {isAuthenticated ? <ChatbotWidget /> : null}
+            {isAuthenticated && <Link to="/chatbot" className={location.pathname === '/chatbot' ? 'text-accent' : ''}>Chatbot</Link>}
             {isAuthenticated ? (
               <button onClick={logoutUser} className="rounded border border-line px-3 py-1">Logout</button>
             ) : (

@@ -66,7 +66,7 @@ export default function VideoPage() {
     markVideoCompleted(videoId);
 
     if (video?.next_video_id) {
-      navigate(`/subjects/${subjectId}/video/${video.next_video_id}`);
+      navigate(`/courses/${subjectId}/video/${video.next_video_id}`);
       return;
     }
 

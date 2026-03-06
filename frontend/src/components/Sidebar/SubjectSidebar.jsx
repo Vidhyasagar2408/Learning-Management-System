@@ -16,10 +16,10 @@ export default function SubjectSidebar({ subjectId, tree, currentVideoId }) {
                 return (
                   <Link
                     key={video.id}
-                    to={`/subjects/${subjectId}/video/${video.id}`}
+                    to={`/courses/${subjectId}/video/${video.id}`}
                     className={`block rounded px-2 py-1 text-sm ${active ? 'bg-accentSoft text-accent' : 'hover:bg-slate-50'} ${video.locked ? 'pointer-events-none opacity-50' : ''}`}
                   >
-                    {video.title} {video.is_completed ? '?' : ''}
+                    {video.title} {video.is_completed ? '(done)' : ''}
                   </Link>
                 );
               })}
